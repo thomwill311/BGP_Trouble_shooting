@@ -1,0 +1,65 @@
+TASK
+
+Configure R1 and R2 to become eBGP peers.
+Do not use disable-connected-check,
+ebgp-multihop, or ttl-security to accomplish
+this task. Do not configure any tunneling
+mechanisms or IRB to accomplish this task.
+
+SERVER
+-------
+R1
+  bba-group ppoe TST
+       virtual-template 12
+!
+interface virtual-template 21
+ip address unnumbered lo0
+!
+interface g0/0
+no ip address
+pppoe enable group TST
+
+CLIENT
+----------
+
+interface dialer 21
+encapsulation ppp
+ip address unnumbered lo0
+dialer-pool 100
+!
+interface g0/1
+no ip address
+pppoe enable
+pppoe client-dialer-pool 100
+
+BGP R1
+-----
+router bgp 100
+neighbore 2.2.2.2 remot-as 200
+neighbore 2.2.2.2 update-source lo0
+
+BGP R2
+router bgp 200
+neighbore 1.1.1.1 remot-as 100
+neighbore 1.1.1.1 update-source lo0
+
+------
+
+OSPF is flapping 
+
+
+This is, because the virtual-template sets it's mtu at 4992 and on the 
+Cleint side the Dialer sets it as 1500
+
+CHANGE
+------
+
+R1
+
+interface virtual-template 12
+ip ospf mtu 1500
+
+R2
+interface dialer 21
+ip ospf mtu 1500
+
